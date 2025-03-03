@@ -13,7 +13,7 @@
                 "-L${workspaceFolder}/lib",
 
 
-                "${workspaceFolder}/main.cpp",
+                "${workspaceFolder}/src/*",
 
                 "-lmingw32",
                 "-lSDL2main",
