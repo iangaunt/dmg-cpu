@@ -52,6 +52,17 @@ void opcodes::CPL() {
     NOP();
 }
 
+void opcodes::DEC_p(unsigned char* r1, unsigned char* r2) {
+    unsigned short pair = *r1;
+    pair <<= 8;
+    pair |= *r2;
+    pair--;
+
+    *r1 = (pair >> 8);
+    *r2 = (pair &= 0x00FF);
+    NOP();
+}
+
 void opcodes::EI() { c->running = false; }
 
 void opcodes::HALT() { c->running = false; }
@@ -86,6 +97,9 @@ void opcodes::JR_s8(bool flag) { c->prog_counter += (flag ? c->get_s8() : 1); }
 void opcodes::LD_rr(unsigned char* r1, unsigned char* r2) { *r1 = *r2; NOP(); }
 void opcodes::LD_rp(unsigned char* reg, unsigned short pair) { *reg = c->mram[pair]; NOP(); }
 void opcodes::LD_pr(unsigned short pair, unsigned char* reg) { c->mram[pair] = *reg; NOP(); }
+void opcodes::LD_rmr(unsigned char* r1, unsigned char* r2) { c->mram[0xFF00 | *r1] = *r2; NOP(); }
+void opcodes::LD_rrm(unsigned char* r1, unsigned char* r2) { *r1 = c->mram[0xFF00 | *r2]; NOP(); }
+
 void opcodes::LD_pd16(unsigned char* r1, unsigned char* r2, short d16) {
     *r1 = (unsigned char) (d16 & 0xff00 >> 8);
     *r2 = (unsigned char) (d16 & 0x00ff);
@@ -190,7 +204,7 @@ void opcodes::parse(unsigned int opcode) {
         case 0x01: { LD_rrd16(&c->registers->b, &c->registers->c); break; };
         case 0x11: { LD_rrd16(&c->registers->d, &c->registers->e); break; }
         case 0x21: { LD_rrd16(&c->registers->h, &c->registers->l); break; }
-        case 0x31: { c->stack_pointer = c->get_d16(); break; }
+        case 0x31: { c->stack_pointer = c->get_d16(); NOP(); break; }
         case 0x41: { LD_rr(&c->registers->b, &c->registers->c); break; }
         case 0x51: { LD_rr(&c->registers->d, &c->registers->c); break; }
         case 0x61: { LD_rr(&c->registers->h, &c->registers->c); break; }
@@ -207,11 +221,36 @@ void opcodes::parse(unsigned int opcode) {
         case 0x02: { LD_pr(c->get_bc(), &c->registers->a); break; }
         case 0x12: { LD_pr(c->get_de(), &c->registers->a); break; }
         case 0x22: { LD_pr(c->get_hl(), &c->registers->a); INC_p(&c->registers->h, &c->registers->l); break; }
-        case 0x32: { LD_pr(c->get_hl(), &c->registers->a); INC_p(&c->registers->h, &c->registers->l); break; }
+        case 0x32: { LD_pr(c->get_hl(), &c->registers->a); DEC_p(&c->registers->h, &c->registers->l); break; }
+        case 0x42: { LD_rr(&c->registers->b, &c->registers->d); break; }
+        case 0x52: { LD_rr(&c->registers->d, &c->registers->d); break; }
+        case 0x62: { LD_rr(&c->registers->h, &c->registers->d); break; }
+        case 0x72: { LD_pr(c->get_hl(), &c->registers->d); break; }
+        case 0x82: { ADD_rr(&c->registers->a, &c->registers->d); break; }
+        case 0x92: { SUB_r(&c->registers->d); break; }
+        case 0xA2: { AND_r(&c->registers->d); break; }
+        case 0xB2: { OR(&c->registers->d); break; }
+        case 0xC2: { JP_a16(!c->f_flags.f_zero); break; }
+        case 0xD2: { JP_a16(!c->f_flags.f_carry); break; }
+        case 0xE2: { LD_rmr(&c->registers->c, &c->registers->a); break; }
+        case 0xF2: { LD_rrm(&c->registers->a, &c->registers->c); break; }
 
-
-
+        case 0x03: { INC_p(&c->registers->b, &c->registers->c); break; }
+        case 0x13: { INC_p(&c->registers->d, &c->registers->e); break; }
+        case 0x23: { INC_p(&c->registers->h, &c->registers->l); break; }
+        case 0x33: { c->stack_pointer++; NOP(); break; }
+        case 0x43: { LD_rr(&c->registers->b, &c->registers->e); break; }
+        case 0x53: { LD_rr(&c->registers->d, &c->registers->e); break; }
+        case 0x63: { LD_rr(&c->registers->h, &c->registers->e); break; }
+        case 0x73: { LD_pr(c->get_hl(), &c->registers->e); break; }
+        case 0x83: { ADD_rr(&c->registers->a, &c->registers->e); break; }
+        case 0x93: { SUB_r(&c->registers->e); break; }
+        case 0xA3: { AND_r(&c->registers->e); break; }
+        case 0xB3: { OR(&c->registers->e); break; }
         case 0xC3: { JP_a16(true); break; }
+        case 0xD3: { NOP(); break; }
+        case 0xE3: { NOP(); break; }
+        case 0xF3: { NOP(); break; }
 
         default: {
             std::cout << "Unknown opcode " << std::hex << opcode << "." << std::endl;

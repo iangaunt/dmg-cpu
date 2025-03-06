@@ -20,6 +20,8 @@ class opcodes {
         void CCF();
         void CPL();
 
+        void DEC_p(unsigned char* r1, unsigned char* r2);
+
         void EI();
 
         void HALT();
@@ -33,6 +35,8 @@ class opcodes {
         void LD_rr(unsigned char* r1, unsigned char* r2);
         void LD_rp(unsigned char* reg, unsigned short pair);
         void LD_pr(unsigned short pair, unsigned char* reg);
+        void LD_rmr(unsigned char* r1, unsigned char* r2);
+        void LD_rrm(unsigned char* r1, unsigned char* r2);
 
         void LD_pd16(unsigned char* r1, unsigned char* r2, short d16);
         void LD_rrd16(unsigned char* r1, unsigned char* r2);
