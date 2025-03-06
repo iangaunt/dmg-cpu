@@ -7,9 +7,9 @@
         "**/.DS_Store": true,
         "**/Thumbs.db": true,
 
-        "lib": true,
-        "SDL2.dll": true,
-        "include/SDL2": true
+        // "lib": true,
+        // "SDL2.dll": true,
+        // "include/SDL2": true
     },
     "files.associations": {
         "istream": "cpp",
