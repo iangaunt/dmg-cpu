@@ -93,6 +93,16 @@ void cpu::set_hl(unsigned short sh_hl) {
     registers->l = static_cast<unsigned char>(sh_hl & 0x00ff);
 }
 
+signed char cpu::get_s8() { return (signed char) (mram[prog_counter + 1]); }
+unsigned char cpu::get_d8() { return (unsigned char) (mram[prog_counter + 1]); }
+unsigned short cpu::get_d16() {
+    unsigned short d16 = 0x0;
+    d16 |= mram[prog_counter + 2];
+    d16 <<= 8;
+    d16 |= mram[prog_counter + 1];
+    return d16;
+}
+
 void cpu::set_f(bool fz, bool fs, bool fh, bool fcy) {
     f_flags.f_zero = fz;
     f_flags.f_subtract = fs;

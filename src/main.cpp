@@ -22,10 +22,9 @@ int main(int argc, char *argv[]) {
     while (!quit && c->running && k < 20) {
         quit = dis->fetch_input();
         
-        cout << std::bitset<8>(c->registers->a) << endl;
-        cout << std::bitset<8>(c->mram[0]) << endl;
+        unsigned char opc = c->read();
+        op->parse(opc);
 
-        op->STOP();
         k++;
     }
 

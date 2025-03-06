@@ -1,5 +1,7 @@
 #include "opcodes.h"
 
+#include <iostream>
+
 opcodes::opcodes(cpu* c) {
     this->c = c;
 }
@@ -12,6 +14,7 @@ void opcodes::ADC_rr(unsigned char* r1, unsigned char* r2) {
     *r1 = sum;
     NOP();
 }
+
 void opcodes::ADC_rp(unsigned char* r1, unsigned short pair) {
     unsigned char sum = *r1 + c->mram[pair];
     if (c->f_flags.f_carry) sum++;
@@ -27,6 +30,7 @@ void opcodes::ADD_rr(unsigned char* r1, unsigned char* r2) {
     *r1 = sum;
     NOP();
 }
+
 void opcodes::ADD_rp(unsigned char* r1, unsigned short pair) {
     unsigned char sum = *r1 + c->mram[pair];
     c->set_f(sum == 0x0, false, ((*r1 & 0xF) + (sum & 0xF) > 0xF), *r1 > sum);
@@ -58,16 +62,26 @@ void opcodes::INC_r(unsigned char* reg) {
     *reg = sum;
     NOP();
 }
+void opcodes::INC_p(unsigned char* r1, unsigned char* r2) {
+    unsigned short pair = *r1;
+    pair <<= 8;
+    pair |= *r2;
+    pair++;
 
-void opcodes::JP_a16(bool flag, unsigned short a16) {
+    *r1 = (pair >> 8);
+    *r2 = (pair &= 0x00FF);
+    NOP();
+}
+
+void opcodes::JP_a16(bool flag) {
     if (flag) { 
-        c->prog_counter = a16; 
+        c->prog_counter = c->get_d16(); 
     } else { 
         c->prog_counter++; 
     }
     NOP();
 }
-void opcodes::JR_s8(bool f, unsigned char s8) { c->prog_counter += (f ? s8 : 1); }
+void opcodes::JR_s8(bool flag) { c->prog_counter += (flag ? c->get_s8() : 1); }
 
 void opcodes::LD_rr(unsigned char* r1, unsigned char* r2) { *r1 = *r2; NOP(); }
 void opcodes::LD_rp(unsigned char* reg, unsigned short pair) { *reg = c->mram[pair]; NOP(); }
@@ -76,6 +90,11 @@ void opcodes::LD_pd16(unsigned char* r1, unsigned char* r2, short d16) {
     *r1 = (unsigned char) (d16 & 0xff00 >> 8);
     *r2 = (unsigned char) (d16 & 0x00ff);
     NOP();
+}
+void opcodes::LD_rrd16(unsigned char* r1, unsigned char* r2) {
+    short d16 = c->mram[c->prog_counter + 1] << 8;
+    d16 |= c->mram[c->prog_counter + 2];
+    LD_pd16(r1, r2, d16);
 }
 void opcodes::LD_rd8(unsigned char* reg, char d8) { *reg = d8; NOP(); }
 void opcodes::LD_a8a(unsigned char a8) { c->mram[0xff00 & a8] = c->registers->a; NOP(); }
@@ -109,11 +128,11 @@ void opcodes::PUSH(unsigned char* r1, unsigned char* r2) {
 void opcodes::RET(bool flag) {
     if (flag) {
         unsigned short new_pc = 0x0;
-        new_pc &= c->stack[c->stack_pointer];
+        new_pc |= c->stack[c->stack_pointer];
         new_pc <<= 8;
         c->stack_pointer++;
         
-        new_pc &= c->stack[c->stack_pointer];
+        new_pc |= c->stack[c->stack_pointer];
     }
     NOP();
 }
@@ -152,54 +171,51 @@ void opcodes::SUB_p(unsigned short pair) {
 void opcodes::parse(unsigned int opcode) {
     switch (opcode) {
         case 0x00: { NOP(); break; }
-        case 0x01: { STOP(); break; }
-        case 0x02: { JR_s8(
-            !c->f_flags.f_zero, 
-            c->mram[c->prog_counter + 1]
-        ); break; }
-        case 0x03: { JR_s8(
-            !c->f_flags.f_carry, 
-            c->mram[c->prog_counter + 1]
-        ); break; }
-        case 0x04: { LD_rr(&c->registers->b, &c->registers->b); break; }
-        case 0x05: { LD_rr(&c->registers->d, &c->registers->b); break; }
-        case 0x06: { LD_rr(&c->registers->h, &c->registers->d); break; }
-        case 0x07: { LD_pr(c->get_hl(), &c->registers->d); break; }
-        case 0x08: { ADD_rr(&c->registers->a, &c->registers->b); break; }
-        case 0x09: { SUB_r(&c->registers->b); break; }
-        case 0x0A: { AND_r(&c->registers->b); break; }
-        case 0x0B: { OR(&c->registers->b); break; }
-        case 0x0C: { RET(!c->f_flags.f_zero); break; }
-        case 0x0D: { RET(!c->f_flags.f_carry); break; }
-        case 0x0E: { LD_a8a(c->mram[c->prog_counter + 1]); break; }
-        case 0x0F: { LD_aa8(c->mram[c->prog_counter + 1]); break; }
+        case 0x10: { STOP(); break; }
+        case 0x20: { JR_s8(!c->f_flags.f_zero); break; }
+        case 0x30: { JR_s8(!c->f_flags.f_carry); break; }
+        case 0x40: { LD_rr(&c->registers->b, &c->registers->b); break; }
+        case 0x50: { LD_rr(&c->registers->d, &c->registers->b); break; }
+        case 0x60: { LD_rr(&c->registers->h, &c->registers->d); break; }
+        case 0x70: { LD_pr(c->get_hl(), &c->registers->d); break; }
+        case 0x80: { ADD_rr(&c->registers->a, &c->registers->b); break; }
+        case 0x90: { SUB_r(&c->registers->b); break; }
+        case 0xA0: { AND_r(&c->registers->b); break; }
+        case 0xB0: { OR(&c->registers->b); break; }
+        case 0xC0: { RET(!c->f_flags.f_zero); break; }
+        case 0xD0: { RET(!c->f_flags.f_carry); break; }
+        case 0xE0: { LD_a8a(c->mram[c->prog_counter + 1]); break; }
+        case 0xF0: { LD_aa8(c->mram[c->prog_counter + 1]); break; }
 
-        case 0x10: {
-            short d16 = c->mram[c->prog_counter + 1] << 8;
-            d16 &= c->mram[c->prog_counter + 2];
-            LD_pd16(&c->registers->b, &c->registers->c, d16);
-            break;
-        };
-        case 0x11: {
-            short d16 = c->mram[c->prog_counter + 1] << 8;
-            d16 &= c->mram[c->prog_counter + 2];
-            LD_pd16(&c->registers->d, &c->registers->e, d16);
-            break;
-        };
-        case 0x12: {
-            short d16 = c->mram[c->prog_counter + 1] << 8;
-            d16 &= c->mram[c->prog_counter + 2];
-            LD_pd16(&c->registers->h, &c->registers->l, d16);
-            break;
-        };
-        case 0x13: {
-            short d16 = c->mram[c->prog_counter + 1] << 8;
-            d16 &= c->mram[c->prog_counter + 2];
-            c->stack_pointer = d16;
+        case 0x01: { LD_rrd16(&c->registers->b, &c->registers->c); break; };
+        case 0x11: { LD_rrd16(&c->registers->d, &c->registers->e); break; }
+        case 0x21: { LD_rrd16(&c->registers->h, &c->registers->l); break; }
+        case 0x31: { c->stack_pointer = c->get_d16(); break; }
+        case 0x41: { LD_rr(&c->registers->b, &c->registers->c); break; }
+        case 0x51: { LD_rr(&c->registers->d, &c->registers->c); break; }
+        case 0x61: { LD_rr(&c->registers->h, &c->registers->c); break; }
+        case 0x71: { LD_pr(c->get_hl(), &c->registers->c); break; }
+        case 0x81: { ADD_rr(&c->registers->a, &c->registers->c); break; }
+        case 0x91: { SUB_r(&c->registers->c); break; }
+        case 0xA1: { AND_r(&c->registers->c); break; }
+        case 0xB1: { OR(&c->registers->c); break; }
+        case 0xC1: { POP(&c->registers->b, &c->registers->c); break; }
+        case 0xD1: { POP(&c->registers->d, &c->registers->e); break; }
+        case 0xE1: { POP(&c->registers->h, &c->registers->l); break; }
+        case 0xF1: { POP(&c->registers->a, &c->registers->f); break; }
+
+        case 0x02: { LD_pr(c->get_bc(), &c->registers->a); break; }
+        case 0x12: { LD_pr(c->get_de(), &c->registers->a); break; }
+        case 0x22: { LD_pr(c->get_hl(), &c->registers->a); INC_p(&c->registers->h, &c->registers->l); break; }
+        case 0x32: { LD_pr(c->get_hl(), &c->registers->a); INC_p(&c->registers->h, &c->registers->l); break; }
+
+
+
+        case 0xC3: { JP_a16(true); break; }
+
+        default: {
+            std::cout << "Unknown opcode " << std::hex << opcode << "." << std::endl;
             break;
         }
-        case 0x14: { LD_rr(&c->registers->b, &c->registers->c); break; }
-        case 0x15: { LD_rr(&c->registers->d, &c->registers->c); break; }
-        case 0x16: { LD_rr(&c->registers->h, &c->registers->c); break; }
     }
 }

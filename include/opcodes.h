@@ -25,14 +25,17 @@ class opcodes {
         void HALT();
 
         void INC_r(unsigned char* reg);
+        void INC_p(unsigned char* r1, unsigned char* r2);
 
-        void JP_a16(bool flag, unsigned short a16);
-        void JR_s8(bool flag, unsigned char s8);
+        void JP_a16(bool flag);
+        void JR_s8(bool flag);
 
         void LD_rr(unsigned char* r1, unsigned char* r2);
         void LD_rp(unsigned char* reg, unsigned short pair);
         void LD_pr(unsigned short pair, unsigned char* reg);
+
         void LD_pd16(unsigned char* r1, unsigned char* r2, short d16);
+        void LD_rrd16(unsigned char* r1, unsigned char* r2);
         void LD_rd8(unsigned char* reg, char d8);
         void LD_a8a(unsigned char a8);
         void LD_aa8(unsigned char a8);
