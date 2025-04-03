@@ -4,7 +4,7 @@
 
 #include "cpu.h"
 #include "display.h"
-#include "opcodes.h"
+#include "systems/opcodes.h"
 
 using std::cout;
 using std::endl;
