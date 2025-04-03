@@ -90,6 +90,10 @@ class opcodes {
         void SUB_r(unsigned char* reg);
         void SUB_p(unsigned short pair);
         void SUB_d8(unsigned char d8);
+
+        void XOR_r(unsigned char* reg);
+        void XOR_p(unsigned short pair);
+        void XOR_d8(unsigned char d8);
 };      
 
 #endif

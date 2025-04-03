@@ -4,7 +4,9 @@
 
 #include "cpu.h"
 #include "display.h"
+
 #include "systems/opcodes.h"
+#include "tests/tests.h"
 
 using std::cout;
 using std::endl;
@@ -13,6 +15,8 @@ int main(int argc, char *argv[]) {
     display* dis = new display(160, 144, 3, "gameboy");
     cpu* c = new cpu();
     opcodes* op = new opcodes(c);
+
+    tests* t = new tests();
 
     bool loaded = c->load_rom("C:/Users/ianga/Desktop/Codespaces/dmg-cpu/roms/tetris.gb");
     if (!loaded) return -1;

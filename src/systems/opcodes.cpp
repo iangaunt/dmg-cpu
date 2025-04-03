@@ -300,6 +300,24 @@ void opcodes::SUB_d8(unsigned char d8) {
     NOP();
 }
 
+void opcodes::XOR_r(unsigned char* reg) {
+    unsigned char res = c->registers->a ^ *reg;
+    c->registers->a = res;
+    c->set_f(res == 0x0, false, false, false);
+    NOP();
+}
+void opcodes::XOR_p(unsigned short pair) {
+    unsigned char res = c->registers->a ^ c->mram[pair];
+    c->registers->a = res;
+    c->set_f(res == 0x0, false, false, false);
+    NOP();
+}
+void opcodes::XOR_d8(unsigned char d8) {
+    unsigned char res = c->registers->a ^ d8;
+    c->registers->a = res;
+    c->set_f(res == 0x0, false, false, false);
+    NOP();
+}
 
 void opcodes::parse(unsigned int opcode) {
     switch (opcode) {
@@ -419,6 +437,158 @@ void opcodes::parse(unsigned int opcode) {
         case 0xE6: { AND_d8(c->get_d8()); break; }
         case 0xF6: { OR_d8(c->get_d8()); break; }
 
+        case 0x07: { break; }
+        case 0x17: { break; }
+        case 0x27: { break; }
+        case 0x37: { break; }
+        case 0x47: { LD_rr(&c->registers->b, &c->registers->a); break; }
+        case 0x57: { LD_rr(&c->registers->d, &c->registers->a); break; }
+        case 0x67: { LD_rr(&c->registers->h, &c->registers->a); break; }
+        case 0x77: { LD_pr(c->get_hl(), &c->registers->a); break; }
+        case 0x87: { ADD_rr(&c->registers->a, &c->registers->a); break; }
+        case 0x97: { SUB_r(&c->registers->a); break; }
+        case 0xA7: { AND_r(&c->registers->a); break; }
+        case 0xB7: { OR_r(&c->registers->a); break; }
+        case 0xC7: { RST(0x0000); break; }
+        case 0xD7: { RST(0x0010); break; }
+        case 0xE7: { RST(0x0020); break; }
+        case 0xF7: { RST(0x0030); break; }
+
+        case 0x08: { break; }
+        case 0x18: { JR_s8(true); break; }
+        case 0x28: { JR_s8(c->f_zero); break; }
+        case 0x38: { JR_s8(c->f_carry); break; }
+        case 0x48: { LD_rr(&c->registers->c, &c->registers->b); break; }
+        case 0x58: { LD_rr(&c->registers->e, &c->registers->b); break; }
+        case 0x68: { LD_rr(&c->registers->l, &c->registers->b); break; }
+        case 0x78: { LD_rr(&c->registers->a, &c->registers->b); break; }
+        case 0x88: { ADC_rr(&c->registers->a, &c->registers->b); break; }
+        case 0x98: { SBC_r(&c->registers->b); break; }
+        case 0xA8: { XOR_r(&c->registers->b); break; }
+        case 0xB8: { CP_rr(&c->registers->a, &c->registers->b); break; }
+        case 0xC8: { RET(c->f_zero); break; }
+        case 0xD8: { RET(c->f_carry);break; }
+        case 0xE8: { break; }
+        case 0xF8: { break; }
+
+        case 0x09: { break; }
+        case 0x19: { break; }
+        case 0x29: { break; }
+        case 0x39: { break; }
+        case 0x49: { break; }
+        case 0x59: { break; }
+        case 0x69: { break; }
+        case 0x79: { break; }
+        case 0x89: { break; }
+        case 0x99: { break; }
+        case 0xA9: { break; }
+        case 0xB9: { break; }
+        case 0xC9: { break; }
+        case 0xD9: { break; }
+        case 0xE9: { break; }
+        case 0xF9: { break; }
+
+        case 0x0A: { break; }
+        case 0x1A: { break; }
+        case 0x2A: { break; }
+        case 0x3A: { break; }
+        case 0x4A: { break; }
+        case 0x5A: { break; }
+        case 0x6A: { break; }
+        case 0x7A: { break; }
+        case 0x8A: { break; }
+        case 0x9A: { break; }
+        case 0xAA: { break; }
+        case 0xBA: { break; }
+        case 0xCA: { break; }
+        case 0xDA: { break; }
+        case 0xEA: { break; }
+        case 0xFA: { break; }
+
+        case 0x0B: { break; }
+        case 0x1B: { break; }
+        case 0x2B: { break; }
+        case 0x3B: { break; }
+        case 0x4B: { break; }
+        case 0x5B: { break; }
+        case 0x6B: { break; }
+        case 0x7B: { break; }
+        case 0x8B: { break; }
+        case 0x9B: { break; }
+        case 0xAB: { break; }
+        case 0xBB: { break; }
+        case 0xCB: { break; }
+        case 0xDB: { break; }
+        case 0xEB: { break; }
+        case 0xFB: { break; }
+
+        case 0x0C: { break; }
+        case 0x1C: { break; }
+        case 0x2C: { break; }
+        case 0x3C: { break; }
+        case 0x4C: { break; }
+        case 0x5C: { break; }
+        case 0x6C: { break; }
+        case 0x7C: { break; }
+        case 0x8C: { break; }
+        case 0x9C: { break; }
+        case 0xAC: { break; }
+        case 0xBC: { break; }
+        case 0xCC: { break; }
+        case 0xDC: { break; }
+        case 0xEC: { break; }
+        case 0xFC: { break; }
+
+        case 0x0D: { break; }
+        case 0x1D: { break; }
+        case 0x2D: { break; }
+        case 0x3D: { break; }
+        case 0x4D: { break; }
+        case 0x5D: { break; }
+        case 0x6D: { break; }
+        case 0x7D: { break; }
+        case 0x8D: { break; }
+        case 0x9D: { break; }
+        case 0xAD: { break; }
+        case 0xBD: { break; }
+        case 0xCD: { break; }
+        case 0xDD: { break; }
+        case 0xED: { break; }
+        case 0xFD: { break; }
+
+        case 0x0E: { break; }
+        case 0x1E: { break; }
+        case 0x2E: { break; }
+        case 0x3E: { break; }
+        case 0x4E: { break; }
+        case 0x5E: { break; }
+        case 0x6E: { break; }
+        case 0x7E: { break; }
+        case 0x8E: { break; }
+        case 0x9E: { break; }
+        case 0xAE: { break; }
+        case 0xBE: { break; }
+        case 0xCE: { break; }
+        case 0xDE: { break; }
+        case 0xEE: { break; }
+        case 0xFE: { break; }
+
+                
+        case 0x0F: { break; }
+        case 0x1F: { break; }
+        case 0x2F: { break; }
+        case 0x3F: { break; }
+        case 0x4F: { break; }
+        case 0x5F: { break; }
+        case 0x6F: { break; }
+        case 0x7F: { break; }
+        case 0x8F: { break; }
+        case 0x9F: { break; }
+        case 0xAF: { break; }
+        case 0xBF: { break; }
+        case 0xCF: { break; }
+        case 0xDF: { break; }
+        case 0xEF: { break; }
         case 0xFF: { NOP(); break; }
 
         default: {

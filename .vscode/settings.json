@@ -63,5 +63,6 @@
         "xtr1common": "cpp",
         "xutility": "cpp"
     },
-    "lua.debug.variables.showIntegerAsHex": true
+    "lua.debug.variables.showIntegerAsHex": true,
+    "C_Cpp.errorSquiggles": "disabled"
 }
